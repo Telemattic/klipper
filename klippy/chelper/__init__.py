@@ -19,7 +19,7 @@ SSE_FLAGS = "-mfpmath=sse -msse2"
 SOURCE_FILES = [
     'pyhelper.c', 'serialqueue.c', 'stepcompress.c', 'itersolve.c', 'trapq.c',
     'pollreactor.c', 'msgblock.c', 'trdispatch.c',
-    'kin_cartesian.c', 'kin_corexy.c', 'kin_corexz.c', 'kin_delta.c',
+    'kin_arm.c', 'kin_cartesian.c', 'kin_corexy.c', 'kin_corexz.c', 'kin_delta.c',
     'kin_deltesian.c', 'kin_polar.c', 'kin_rotary_delta.c', 'kin_winch.c',
     'kin_extruder.c', 'kin_shaper.c', 'kin_idex.c',
 ]
@@ -101,6 +101,11 @@ defs_trapq = """
         , double pos_x, double pos_y, double pos_z);
     int trapq_extract_old(struct trapq *tq, struct pull_move *p, int max
         , double start_time, double end_time);
+"""
+
+defs_kin_arm = """
+    struct stepper_kinematics *arm_stepper_alloc(double L0
+        , double L2, double Lp, double Ld, char type);
 """
 
 defs_kin_cartesian = """
@@ -220,7 +225,7 @@ defs_std = """
 defs_all = [
     defs_pyhelper, defs_serialqueue, defs_std, defs_stepcompress,
     defs_itersolve, defs_trapq, defs_trdispatch,
-    defs_kin_cartesian, defs_kin_corexy, defs_kin_corexz, defs_kin_delta,
+    defs_kin_arm, defs_kin_cartesian, defs_kin_corexy, defs_kin_corexz, defs_kin_delta,
     defs_kin_deltesian, defs_kin_polar, defs_kin_rotary_delta, defs_kin_winch,
     defs_kin_extruder, defs_kin_shaper, defs_kin_idex,
 ]
