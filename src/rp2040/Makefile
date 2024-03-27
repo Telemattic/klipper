@@ -11,7 +11,7 @@ CFLAGS += -Ilib/rp2040 -Ilib/rp2040/cmsis_include -Ilib/fast-hash -Ilib/can2040
 # Add source files
 src-y += rp2040/main.c rp2040/watchdog.c rp2040/gpio.c
 src-y += rp2040/adc.c rp2040/timer.c rp2040/bootrom.c
-src-y += rp2040/scuart_hw.c
+src-y += rp2040/scuart_hw.c rp2040/scuart.c
 src-y += generic/armcm_boot.c generic/armcm_irq.c generic/armcm_reset.c
 src-y += generic/timer_irq.c generic/crc16_ccitt.c
 src-$(CONFIG_USBSERIAL) += rp2040/usbserial.c generic/usb_cdc.c
