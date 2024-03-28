@@ -7,6 +7,7 @@
 #include "hardware/structs/iobank0.h" // iobank0_hw
 #include "hardware/structs/padsbank0.h" // padsbank0_hw
 #include "hardware/structs/pio.h" // pio0_hw
+#include "hardware/structs/resets.h" // resets_hw
 
 #if 0
 
@@ -264,6 +265,7 @@ pio_clear_irq(pio_hw_t* pio, uint32_t source)
     hw_clear_bits(&pio->inte0, source);
 }
 
+#if 0
 static inline uint32_t
 irq_disable(void)
 {
@@ -282,10 +284,26 @@ irq_enable(uint32_t status)
     pico_default_asm_volatile("msr PRIMASK,%0"::"r" (status) : );
     // restore_interrupts(status);
 }
+#endif
+
+// rp2040 helper function to clear a hardware reset bit
+static void
+rp2040_clear_reset(uint32_t reset_bit)
+{
+    if (resets_hw->reset & reset_bit) {
+        hw_clear_bits(&resets_hw->reset, reset_bit);
+        while (!(resets_hw->reset_done & reset_bit))
+            ;
+    }
+}
 
 void
 scuart_hw_init(struct scuart_hw* u, uint32_t pio_num, uint32_t pin, uint32_t baud)
 {
+    rp2040_clear_reset(pio_num
+		       ? RESETS_RESET_PIO1_BITS
+		       : RESETS_RESET_PIO0_BITS);
+    
     pio_hw_t* pio = pio_num ? pio1_hw : pio0_hw;
 
     uint32_t i;
@@ -361,11 +379,11 @@ scuart_hw_send_unsafe(struct scuart_hw* hw, uint8_t len, uint8_t* data)
 void
 scuart_hw_send(struct scuart_hw* u, uint8_t len, uint8_t* data)
 {
-    uint32_t save = irq_disable();
+    // uint32_t save = irq_disable();
 
     scuart_hw_send_unsafe(u, len, data);
     
-    irq_enable(save);
+    // irq_enable(save);
 }
 
 static inline bool
@@ -393,11 +411,11 @@ scuart_hw_recv_unsafe(struct scuart_hw* hw, uint8_t len, uint8_t* data)
 uint8_t
 scuart_hw_recv(struct scuart_hw* u, uint8_t len, uint8_t* data)
 {
-    uint32_t save = irq_disable();
+    // uint32_t save = irq_disable();
 
     uint8_t ret = scuart_hw_recv_unsafe(u, len, data);
     
-    irq_enable(save);
+    // irq_enable(save);
 
     return ret;
 }
