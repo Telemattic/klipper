@@ -21,7 +21,6 @@ struct scuart_s {
     struct scuart_hw hw;
     struct timer timer;
     uint8_t state;
-    uint32_t num_interrupts;
 };
 
 static struct task_wake scuart_wake;
@@ -31,21 +30,14 @@ void
 PIOx_IRQHandler(void)
 {
     scuart_hw_irq_handler(&uarts->hw);
-    uarts->num_interrupts += 1;
 }
 
-static void
+void
 scuart_output_debug_info(struct scuart_s* u)
 {
-    output("scuart: hw(fl=%c wp=%c wl=%c rl=%c) st=%c ni=%u",
+    output("scuart: hw(fl=%c wp=%c wl=%c rl=%c) st=%c",
 	   u->hw.flags, u->hw.wr_pos, u->hw.wr_len, u->hw.rd_len,
-	   u->state, u->num_interrupts);
-#if 0
-    pio_hw_t* pio = u->hw.pio;
-    output("scuart: fstat=%u fdebug=%u flevel=%u reset=%u reset_done=%u",
-	   pio->fstat, pio->fdebug, pio->flevel,
-	   resets_hw->reset, resets_hw->reset_done);
-#endif
+	   u->state);
 }
 
 void
@@ -62,15 +54,10 @@ command_config_scuart(uint32_t* args)
 
     scuart_hw_init(&u->hw, pio_num, pin, baud);
     u->state = SU_IDLE;
-    u->num_interrupts = 0;
     uarts = u;
 
     // Enable irqs
     armcm_enable_irq(PIOx_IRQHandler, PIO0_IRQ_0_IRQn, 1);
-
-    output("scuart: oid=%u pio=%u pin=%u baud=%u", args[0], pio_num, pin, baud);
-
-    scuart_output_debug_info(u);
 }
 DECL_COMMAND(command_config_scuart,
              "config_scuart oid=%c pio=%u pin=%u baud=%u");
@@ -94,8 +81,6 @@ command_scuart_send(uint32_t* args)
     if (u->state != SU_IDLE)
 	return;
 
-    scuart_output_debug_info(u);
-
     u->state = SU_SEND;
     scuart_hw_send(&u->hw, tx_len, tx_data);
 
@@ -104,8 +89,6 @@ command_scuart_send(uint32_t* args)
     u->timer.waketime = timer_read_time() + timer_from_us(500);
     sched_add_timer(&u->timer);
     irq_enable();
-
-    scuart_output_debug_info(u);
 }
 DECL_COMMAND(command_scuart_send, "scuart_send oid=%c write=%*s");
 
@@ -120,8 +103,6 @@ scuart_task(void)
     struct scuart_s* u;
     foreach_oid(oid, u, command_config_scuart) {
     
-	scuart_output_debug_info(u);
-	
 	if (SU_RECV != u->state)
 	    continue;
 	
@@ -136,8 +117,6 @@ scuart_task(void)
 	
 	sendf("scuart_response oid=%c read=%*s"
 	      , oid, len, data);
-	
-	scuart_output_debug_info(u);
     }
 }
 DECL_TASK(scuart_task);

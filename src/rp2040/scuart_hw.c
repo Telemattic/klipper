@@ -300,6 +300,10 @@ rp2040_clear_reset(uint32_t reset_bit)
 void
 scuart_hw_init(struct scuart_hw* u, uint32_t pio_num, uint32_t pin, uint32_t baud)
 {
+    // klipper3d leaves the PIO units in the reset state, maybe
+    // because that's a good way to disable hardware that's not in
+    // use?  The SDK doesn't do this, but it's harmless to always
+    // disable the reset on the PIO we're using
     rp2040_clear_reset(pio_num
 		       ? RESETS_RESET_PIO1_BITS
 		       : RESETS_RESET_PIO0_BITS);
